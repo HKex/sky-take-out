@@ -89,7 +89,6 @@ public class CategoryServiceImpl implements CategoryService {
      * @param list
      * @return
      */
-    @Override
     public List<Category> getByListType(Integer list) {
         return categoryMapper.getByListType(list);
     }
