@@ -73,7 +73,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void save(EmployeeDTO employeeDTO) {
-        System.out.println("当前线程ID：" + Thread.currentThread().getId());
         Employee employee = new Employee();
 
         //将dto对象拷贝到实体对象中
@@ -126,6 +125,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = Employee.builder()
                         .id(id)
                         .status(status)
+                        .updateTime(LocalDateTime.now())
+                        .updateUser(BaseContext.getCurrentId())
                         .build();
 
         employeeMapper.update(employee);
