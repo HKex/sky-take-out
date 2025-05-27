@@ -92,4 +92,23 @@ public class CategoryServiceImpl implements CategoryService {
     public List<Category> getByListType(Integer list) {
         return categoryMapper.getByListType(list);
     }
+
+    @Override
+    public int deleteById(Long id) {
+        int delete = categoryMapper.deleteById(id);
+        return 0;
+    }
+
+    /**
+     * 修改分类
+     * @param categoryDTO
+     */
+    public void update(CategoryDTO categoryDTO) {
+        Category category = new Category();
+        BeanUtils.copyProperties(categoryDTO,category);
+
+        category.setUpdateTime(LocalDateTime.now());
+        category.setUpdateUser(BaseContext.getCurrentId());
+        categoryMapper.update(category);
+    }
 }

@@ -3,6 +3,7 @@ package com.sky.mapper;
 import com.github.pagehelper.Page;
 import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.entity.Category;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -36,4 +37,11 @@ public interface CategoryMapper {
      * @return
      */
     List<Category> getByListType(Integer id);
+
+    /**
+     * 根据id删除分类
+     * @param id
+     */
+    @Delete("DELETE from category where id = #{id}")
+    int deleteById(Long id);
 }
