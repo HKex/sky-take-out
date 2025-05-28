@@ -36,7 +36,11 @@ public interface CategoryService {
      */
     List<Category> getByListType(Integer list);
 
-    int deleteById(Long id);
+    /**
+     * 删除分类
+     * @param id
+     */
+    void deleteById(Long id);
 
     /**
      * 修改分类
