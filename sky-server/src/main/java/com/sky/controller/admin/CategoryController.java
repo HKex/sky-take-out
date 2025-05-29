@@ -76,13 +76,22 @@ public class CategoryController {
         return Result.success(category);
     }
 
-    //TODO
+    /**
+     * 删除分类
+     * @param id
+     * @return
+     */
     public Result<String> deleteById(Long id){
         log.info("删除分类ID号：{}",id);
         categoryService.deleteById(id);
         return Result.success();
     }
 
+    /**
+     * 编辑分类
+     * @param categoryDTO
+     * @return
+     */
     @PutMapping
     @ApiOperation("编辑分类")
     public Result<String> update(@RequestBody CategoryDTO categoryDTO){
