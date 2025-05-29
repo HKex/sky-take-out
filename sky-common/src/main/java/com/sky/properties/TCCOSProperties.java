@@ -5,13 +5,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "sky.alioss")
+@ConfigurationProperties(prefix = "sky.tccos")
 @Data
-public class AliOssProperties {
-
-    private String endpoint;
-    private String accessKeyId;
-    private String accessKeySecret;
+public class TCCOSProperties {
+    private String baseUrl;
+    private String accessKey;
+    private String secretKey;
+    private String regionName;
     private String bucketName;
 
 }

@@ -6,3 +6,10 @@ sky:
     database: sky_take_out
     username: root
     password: rootpassword
+
+  tccos:
+    base-url: https://sky-hkex-1316972351.cos.ap-guangzhou.myqcloud.com
+    access-key: AKIDnZBamktrb8YmnbDetvkMn00mMkxzpTuB
+    secret-key: 72kEUYQ5WjkY8WhhU5TgfQyJSO6asxth
+    region-name: ap-guangzhou
+    bucket-name: sky-hkex-1316972351

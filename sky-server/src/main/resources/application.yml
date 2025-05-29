@@ -37,3 +37,10 @@ sky:
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+
+  tccos:
+    base-url: ${sky.tccos.base-url}
+    access-key: ${sky.tccos.access-key}
+    secret-key: ${sky.tccos.secret-key}
+    region-name: ${sky.tccos.region-name}
+    bucket-name: ${sky.tccos.bucket-name}
