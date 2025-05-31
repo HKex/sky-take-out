@@ -13,8 +13,15 @@
         INSERT INTO setmeal_dish
             (setmeal_id,dish_id,name,price,copies)
         VALUES
-            <foreach collection="dishes" item="dish" separator="," open="(" close=")">
-                 #{dish.setmealId},#{dish.dishId},#{dish.name},#{dish.price},#{dish.copies}
+            <foreach collection="dishes" item="dish" separator=",">
+                 (#{dish.setmealId},#{dish.dishId},#{dish.name},#{dish.price},#{dish.copies})
             </foreach>
     </insert>
+
+    <delete id="deleteBySetmealId">
+        DELETE FROM setmeal_dish WHERE setmeal_id IN
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
 </mapper>
