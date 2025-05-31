@@ -6,9 +6,11 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
@@ -29,6 +31,9 @@ public class SetmealServiceImpl implements SetmealService {
 
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+
+    @Autowired
+    private DishMapper dishMapper;
 
     /**
      * 分页查询
@@ -94,7 +99,7 @@ public class SetmealServiceImpl implements SetmealService {
         Setmeal setmeal = setmealMapper.getById(id);
 
         //获取套餐下菜品
-        List<SetmealDish> list = setmealDishMapper.getSetmealByDishId(setmeal.getId());
+        List<SetmealDish> list = setmealDishMapper.getDishBySetmealId(setmeal.getId());
 
         //返回VO
         SetmealVO VO = new SetmealVO();
@@ -126,5 +131,30 @@ public class SetmealServiceImpl implements SetmealService {
             dish.setSetmealId(id);
         });
         setmealDishMapper.insertBatch(dishes);
+    }
+
+    /**
+     * 启售停售套餐
+     * @param status
+     * @param id
+     */
+    public void startOrstop(Integer status, Long id) {
+        //起售套餐中不能有未起售菜品
+        if(status == StatusConstant.ENABLE){
+            List<Dish> dishes = dishMapper.getBySetmealId(id);
+            if(dishes != null && dishes.size() > 0){
+                dishes.forEach(dish ->{
+                    if (dish.getStatus().equals(StatusConstant.DISABLE)){
+                        throw new DeletionNotAllowedException(MessageConstant.SETMEAL_ENABLE_FAILED);
+                    }
+                });
+            }
+        }
+
+        Setmeal setmeal = Setmeal.builder()
+                .id(id)
+                .status(status)
+                .build();
+        setmealMapper.update(setmeal);
     }
 }

@@ -1,10 +1,7 @@
 package com.sky.mapper;
 
-import com.sky.annotation.AutoFill;
 import com.sky.entity.SetmealDish;
-import com.sky.enumeration.OperationType;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.ResultType;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -37,5 +34,5 @@ public interface SetmealDishMapper {
      * @return
      */
     @Select("select * from setmeal_dish where setmeal_id = #{setmealId}")
-    List<SetmealDish> getSetmealByDishId(Long setmealId);
+    List<SetmealDish> getDishBySetmealId(Long setmealId);
 }
