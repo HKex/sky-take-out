@@ -34,7 +34,7 @@ public interface CategoryService {
      * @param list
      * @return
      */
-    List<Category> getByListType(Integer list);
+    List<Category> getByListType(Long list);
 
     /**
      * 删除分类

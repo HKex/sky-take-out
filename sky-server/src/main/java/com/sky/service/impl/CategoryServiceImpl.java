@@ -95,7 +95,7 @@ public class CategoryServiceImpl implements CategoryService {
      * @param list
      * @return
      */
-    public List<Category> getByListType(Integer list) {
+    public List<Category> getByListType(Long list) {
         return categoryMapper.getByListType(list);
     }
 

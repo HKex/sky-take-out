@@ -40,7 +40,7 @@ public interface CategoryMapper {
      * @param id
      * @return
      */
-    List<Category> getByListType(Integer id);
+    List<Category> getByListType(Long id);
 
     /**
      * 根据id删除分类

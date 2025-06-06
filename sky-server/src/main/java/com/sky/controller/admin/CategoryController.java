@@ -67,13 +67,14 @@ public class CategoryController {
 
     /**
      * 根据分类类型查询
-     * @param list
+     * @param type
      * @return
      */
     @GetMapping("/list")
     @ApiOperation("根据分类类型查询")
-    public Result<List<Category>> getById(Integer list){
-        List<Category> category = categoryService.getByListType(list);
+    public Result<List<Category>> getById(Long type){
+        log.info("查询分类类型：{}",type);
+        List<Category> category = categoryService.getByListType(type);
         return Result.success(category);
     }
 
@@ -82,6 +83,8 @@ public class CategoryController {
      * @param id
      * @return
      */
+    @DeleteMapping
+    @ApiOperation("删除分类")
     public Result<String> deleteById(Long id){
         log.info("删除分类ID号：{}",id);
         categoryService.deleteById(id);
