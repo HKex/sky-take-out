@@ -1,8 +1,12 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
+import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -10,10 +14,12 @@ import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -159,4 +165,116 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(orders);
     }
 
+    /**
+     * 历史订单查询
+     * @param pageNum
+     * @param pageSize
+     * @param status
+     * @return
+     */
+    public PageResult pageQuery(int pageNum, int pageSize, Integer status) {
+        PageHelper.startPage(pageNum,pageSize);
+        OrdersPageQueryDTO ordersPageQueryDTO = new OrdersPageQueryDTO();
+        ordersPageQueryDTO.setUserId(BaseContext.getCurrentId());
+        ordersPageQueryDTO.setStatus(status);
+
+        //查询Order
+        Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
+        List<OrderVO> list = new ArrayList<>();
+
+        if(page != null && page.size() > 0){
+            for(Orders orders : page){
+                Long orderId = orders.getId();
+
+                List<OrderDetail> details = orderDetailMapper.getByOrderId(orderId);
+
+                OrderVO orderVO = new OrderVO();
+                BeanUtils.copyProperties(orders,orderVO);
+                orderVO.setOrderDetailList(details);
+
+                list.add(orderVO);
+            }
+        }
+
+
+        //通过Order查询Detail
+        return new PageResult(page.getTotal(),list);
+    }
+
+    /**
+     * 获取订单详情
+     * @param id
+     * @return
+     */
+    public OrderVO getDetails(Long id) {
+        //获取订单
+        Orders orders = orderMapper.getById(id);
+        //获取细节
+        List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(orders.getId());
+
+
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(orders,orderVO);
+        orderVO.setOrderDetailList(orderDetails);
+        return orderVO;
+    }
+
+    /**
+     * 取消订单
+     * @param id
+     */
+    public void cancelOrder(Long id) {
+        Orders order = orderMapper.getById(id);
+
+        if(order == null){
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        //待支付和待接单状态下，用户可直接取消订单
+        //-商家已接单状态下，用户取消订单需电话沟通商家
+        //- 派送中状态下，用户取消订单需电话沟通商家
+        if(order.getStatus() > 2){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        Orders nOrder = new Orders();
+        nOrder.setId(id);
+
+        //- 如果在待接单状态下取消订单，需要给用户退款
+        if(order.getStatus().equals(Orders.PENDING_PAYMENT)){
+            //weChatPayUtil.refund(
+            //                    ordersDB.getNumber(), //商户订单号
+            //                    ordersDB.getNumber(), //商户退款单号
+            //                    new BigDecimal(0.01),//退款金额，单位 元
+            //                    new BigDecimal(0.01));//原订单金额
+            nOrder.setPayStatus(Orders.REFUND);
+        }
+        // 更新订单状态、取消原因、取消时间
+        //- 取消订单后需要将订单状态修改为“已取消”
+        nOrder.setStatus(Orders.CANCELLED);
+        nOrder.setCancelReason("用户取消");
+        nOrder.setCancelTime(LocalDateTime.now());
+        orderMapper.update(nOrder);
+    }
+
+    /**
+     * 再来一单
+     * @param id
+     */
+    public void oneMoreOrder(Long id) {
+        //再来一单就是将原订单中的商品重新加入到购物车中
+        List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(id);
+        List<ShoppingCart> shoppingCartList = new ArrayList<>();
+
+        if(orderDetails != null && orderDetails.size() > 0){
+            for(OrderDetail orderDetail : orderDetails){
+                ShoppingCart shoppingCart = new ShoppingCart();
+                BeanUtils.copyProperties(orderDetail,shoppingCart);
+                shoppingCart.setUserId(BaseContext.getCurrentId());
+                shoppingCart.setCreateTime(LocalDateTime.now());
+                shoppingCartList.add(shoppingCart);
+            }
+            shoppingCartMapper.insertBatch(shoppingCartList);
+        }
+    }
 }
