@@ -180,26 +180,39 @@ public class OrderServiceImpl implements OrderService {
 
         //查询Order
         Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
+        List<OrderVO> list = getOrderDetails(page);
+
+
+
+        //通过Order查询Detail
+        return new PageResult(page.getTotal(),list);
+    }
+
+    /**
+     * 通过Order得到OrderDetail封装到VO
+     * @param page
+     * @return
+     */
+    private List<OrderVO> getOrderDetails(Page<Orders> page) {
         List<OrderVO> list = new ArrayList<>();
 
-        if(page != null && page.size() > 0){
-            for(Orders orders : page){
+        if(page != null && page.size() > 0) {
+            for (Orders orders : page) {
                 Long orderId = orders.getId();
 
                 List<OrderDetail> details = orderDetailMapper.getByOrderId(orderId);
 
                 OrderVO orderVO = new OrderVO();
-                BeanUtils.copyProperties(orders,orderVO);
+                BeanUtils.copyProperties(orders, orderVO);
                 orderVO.setOrderDetailList(details);
 
                 list.add(orderVO);
             }
         }
 
-
-        //通过Order查询Detail
-        return new PageResult(page.getTotal(),list);
+        return list;
     }
+
 
     /**
      * 获取订单详情
@@ -215,8 +228,29 @@ public class OrderServiceImpl implements OrderService {
 
         OrderVO orderVO = new OrderVO();
         BeanUtils.copyProperties(orders,orderVO);
+        String orderDishes = getDishesStr(orderDetails);
+        orderVO.setOrderDishes(orderDishes);
         orderVO.setOrderDetailList(orderDetails);
         return orderVO;
+    }
+
+    /**
+     * 获取菜品信息
+     * @param orderDetails
+     * @return
+     */
+    private String getDishesStr(List<OrderDetail> orderDetails) {
+        StringBuilder dishes = new StringBuilder();
+        //遍历菜品形成字符串
+        for(OrderDetail orderDetail : orderDetails){
+            //格式：宫保鸡丁*3
+            dishes.append(orderDetail.getName());
+            dishes.append("*");
+            dishes.append(orderDetail.getNumber());
+        }
+
+
+        return dishes.toString();
     }
 
     /**
@@ -276,5 +310,19 @@ public class OrderServiceImpl implements OrderService {
             }
             shoppingCartMapper.insertBatch(shoppingCartList);
         }
+    }
+
+    /**
+     * 订单搜索
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(),ordersPageQueryDTO.getPageSize());
+        Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
+
+        List<OrderVO> list = getOrderDetails(page);
+
+        return new PageResult(page.getTotal(),list);
     }
 }
