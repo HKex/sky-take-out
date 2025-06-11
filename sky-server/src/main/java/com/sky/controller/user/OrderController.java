@@ -90,10 +90,28 @@ public class OrderController {
         return Result.success();
     }
 
+    /**
+     * 再来一单
+     * @param id
+     * @return
+     */
     @PostMapping("/repetition/{id}")
     public Result oneMoreOrder(@PathVariable Long id){
         log.info("再来一单：{}",id);
         orderService.oneMoreOrder(id);
+        return Result.success();
+    }
+
+    /**
+     * 订单催单
+     * @param id
+     * @return
+     */
+    @GetMapping("/reminder/{id}")
+    @ApiOperation("订单催单")
+    public Result reminder(@PathVariable Long id){
+        log.info("订单催单：{}",id);
+        orderService.reminder(id);
         return Result.success();
     }
 }
