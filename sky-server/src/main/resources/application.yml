@@ -63,3 +63,9 @@ sky:
     secret-key: ${sky.tccos.secret-key}
     region-name: ${sky.tccos.region-name}
     bucket-name: ${sky.tccos.bucket-name}
+
+  shop:
+    address: ${sky.shop.address}
+
+  baidu:
+    ak: ${sky.baidu.ak}
