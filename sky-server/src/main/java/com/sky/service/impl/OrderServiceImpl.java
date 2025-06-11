@@ -18,6 +18,7 @@ import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
@@ -204,6 +205,8 @@ public class OrderServiceImpl implements OrderService {
 
                 OrderVO orderVO = new OrderVO();
                 BeanUtils.copyProperties(orders, orderVO);
+                String orderDishes = getDishesStr(details);
+                orderVO.setOrderDishes(orderDishes);
                 orderVO.setOrderDetailList(details);
 
                 list.add(orderVO);
@@ -245,8 +248,9 @@ public class OrderServiceImpl implements OrderService {
         for(OrderDetail orderDetail : orderDetails){
             //格式：宫保鸡丁*3
             dishes.append(orderDetail.getName());
-            dishes.append("*");
+            dishes.append(" * ");
             dishes.append(orderDetail.getNumber());
+            dishes.append(", ");
         }
 
 
@@ -324,5 +328,22 @@ public class OrderServiceImpl implements OrderService {
         List<OrderVO> list = getOrderDetails(page);
 
         return new PageResult(page.getTotal(),list);
+    }
+
+    /**
+     * 统计订单数据
+     * @return
+     */
+    public OrderStatisticsVO statistics() {
+        Integer confirmed = orderMapper.countByStatus(Orders.CONFIRMED);
+        Integer deliveryInProgress = orderMapper.countByStatus(Orders.DELIVERY_IN_PROGRESS);
+        Integer toBeConfirmed = orderMapper.countByStatus(Orders.TO_BE_CONFIRMED);
+
+        OrderStatisticsVO vo = new OrderStatisticsVO();
+        vo.setConfirmed(confirmed);
+        vo.setDeliveryInProgress(deliveryInProgress);
+        vo.setToBeConfirmed(toBeConfirmed);
+
+        return vo;
     }
 }
