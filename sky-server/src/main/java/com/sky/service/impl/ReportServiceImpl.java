@@ -1,14 +1,12 @@
 package com.sky.service.impl;
 
+import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
 import com.sky.exception.OrderBusinessException;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.OrderStatisticsVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.vo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +17,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -77,33 +76,6 @@ public class ReportServiceImpl implements ReportService {
     }
 
     /**
-     * 统计指定时间区间内的订单和相关数据
-     * @param begin
-     * @param end
-     * @return
-     */
-    public OrderReportVO getOrderStatistics(LocalDate begin, LocalDate end) {
-        //存每天
-        List<LocalDate> dateList = getDateList(begin, end);
-
-        List<Integer> dailyOrders = new ArrayList<>();
-        List<Integer> dailySucOrders = new ArrayList<>();
-        Integer totalOrderCount = 0;
-        Integer validOrderCount = 0;
-        Double orderCompletionRate = 0.0;
-
-        for(LocalDate d : dateList){
-            //开始结束时间为一天最早/最晚的时候
-            LocalDateTime beginTime = LocalDateTime.of(d, LocalTime.MIN);
-            LocalDateTime endTime = LocalDateTime.of(d, LocalTime.MAX);
-
-        }
-
-        return OrderReportVO.builder()
-                .build();
-    }
-
-    /**
      * 统计用户数据
      * @param begin
      * @param end
@@ -130,5 +102,70 @@ public class ReportServiceImpl implements ReportService {
                 .totalUserList(StringUtils.join(totalUserList,","))
                 .newUserList(StringUtils.join(newUserList,","))
                 .build();
+    }
+
+    /**
+     * 统计指定时间区间内的订单和相关数据
+     * @param begin
+     * @param end
+     * @return
+     */
+    public OrderReportVO getOrderStatistics(LocalDate begin, LocalDate end) {
+        //存每天
+        List<LocalDate> dateList = getDateList(begin, end);
+
+        List<Integer> dailyOrders = new ArrayList<>();
+        List<Integer> dailySucOrders = new ArrayList<>();
+        Double orderCompletionRate = 0.0;
+        Integer totalOrder = 0;
+        Integer validOrder = 0;
+
+        for(LocalDate d : dateList){
+            //开始结束时间为一天最早/最晚的时候
+            LocalDateTime beginTime = LocalDateTime.of(d, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(d, LocalTime.MAX);
+
+            Integer totalOrderCount = orderMapper.countByMap(Map.of("begin", beginTime, "end", endTime));
+            Integer validOrderCount = orderMapper.countByMap(Map.of("begin", beginTime, "end", endTime, "status", Orders.COMPLETED));
+
+            dailyOrders.add(totalOrderCount);
+            dailySucOrders.add(validOrderCount);
+
+            totalOrder += totalOrderCount;
+            validOrder += validOrderCount;
+        }
+
+        if (totalOrder != 0)orderCompletionRate =  validOrder.doubleValue() / totalOrder.doubleValue();
+
+
+        return OrderReportVO.builder()
+                .dateList(StringUtils.join(dateList,","))
+                .orderCountList(StringUtils.join(dailyOrders,","))
+                .validOrderCountList(StringUtils.join(dailySucOrders,","))
+                .validOrderCount(validOrder)
+                .totalOrderCount(totalOrder)
+                .orderCompletionRate(orderCompletionRate)
+                .build();
+    }
+
+    /**
+     * 统计指定时间区间内的销量排名
+     * @param begin
+     * @param end
+     * @return
+     */
+    public SalesTop10ReportVO getSalesTop10(LocalDate begin, LocalDate end){
+        LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(end,LocalTime.MAX);
+
+
+        List<GoodsSalesDTO> salesTop10 = orderMapper.getSalesTop10(beginTime, endTime);
+
+        List<String> names = salesTop10.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList());
+        String nameList = StringUtils.join(names, ",");
+        List<Integer> numbers = salesTop10.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList());
+        String numberList = StringUtils.join(numbers, ",");
+
+        return SalesTop10ReportVO.builder().nameList(nameList).numberList(numberList).build();
     }
 }
